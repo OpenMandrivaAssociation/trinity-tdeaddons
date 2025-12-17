@@ -1,6 +1,7 @@
-#
-# Please submit bugfixes or comments via http://www.trinitydesktop.org/
-#
+%bcond clang 1
+%bcond gamin 1
+%bcond db 0
+%bcond python 1
 
 # BUILD WARNING:
 #  Remove qt-devel and qt3-devel and any kde*-devel on your system !
@@ -10,6 +11,8 @@
 %if "%{?tde_version}" == ""
 %define tde_version 14.1.5
 %endif
+%define pkg_rel 2
+
 %define tde_pkg tdeaddons
 %define tde_prefix /opt/trinity
 %define tde_bindir %{tde_prefix}/bin
@@ -23,31 +26,24 @@
 %define tde_tdeincludedir %{tde_includedir}/tde
 %define tde_tdelibdir %{tde_libdir}/trinity
 
-%if 0%{?mdkversion}
 %undefine __brp_remove_la_files
 %define dont_remove_libtool_files 1
 %define _disable_rebuild_configure 1
-%endif
 
 # fixes error: Empty %files file …/debugsourcefiles.list
 %define _debugsource_template %{nil}
 
 %define tarball_name %{tde_pkg}-trinity
-%global toolchain %(readlink /usr/bin/cc)
 
 
 Name:		trinity-%{tde_pkg}
 Summary:	Trinity Desktop Environment - Plugins
 Version:	%{tde_version}
-Release:	%{?!preversion:1}%{?preversion:0_%{preversion}}%{?dist}
+Release:	%{?!preversion:%{pkg_rel}}%{?preversion:0_%{preversion}}%{?dist}
 Group:		User Interface/Desktops
 URL:		http://www.trinitydesktop.org/
 
-%if 0%{?suse_version}
-License:	GPL-2.0+
-%else
 License:	GPLv2+
-%endif
 
 #Vendor:		Trinity Project
 #Packager:	Francois Andriot <francois.andriot@free.fr>
@@ -61,8 +57,30 @@ Prefix:    %{tde_prefix}
 
 Source0:	https://mirror.ppa.trinitydesktop.org/trinity/releases/R%{tde_version}/main/core/%{tarball_name}-%{version}%{?preversion:~%{preversion}}.tar.xz
 
-BuildRequires:  cmake make
-
+BuildSystem:    cmake
+BuildOption:    -DCMAKE_BUILD_TYPE="RelWithDebInfo"
+BuildOption:    -DCMAKE_SKIP_RPATH=OFF
+BuildOption:    -DCMAKE_SKIP_INSTALL_RPATH=OFF
+BuildOption:    -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON
+BuildOption:    -DCMAKE_INSTALL_RPATH="%{tde_libdir}"
+BuildOption:    -DCMAKE_INSTALL_PREFIX="%{tde_prefix}"
+BuildOption:    -DBIN_INSTALL_DIR="%{tde_bindir}"
+BuildOption:    -DDOC_INSTALL_DIR="%{tde_docdir}"
+BuildOption:    -DINCLUDE_INSTALL_DIR="%{tde_tdeincludedir}"
+BuildOption:    -DLIB_INSTALL_DIR="%{tde_libdir}"
+BuildOption:    -DPKGCONFIG_INSTALL_DIR="%{tde_libdir}/pkgconfig"
+BuildOption:    -DSYSCONF_INSTALL_DIR="%{_sysconfdir}/trinity"
+BuildOption:    -DSHARE_INSTALL_PREFIX="%{tde_datadir}"
+BuildOption:    -DWITH_ALL_OPTIONS=ON -DWITH_ARTS=ON -DWITH_SDL=ON
+BuildOption:    -DWITH_XMMS=OFF -DWITH_TEST=OFF -DBUILD_ALL=ON
+BuildOption:    -DBUILD_ATLANTIKDESIGNER=ON -DBUILD_DOC=ON
+BuildOption:    -DBUILD_KADDRESSBOOK_PLUGINS=ON -DBUILD_KATE_PLUGINS=ON
+BuildOption:    -DBUILD_KICKER_APPLETS=ON -DBUILD_KNEWSTICKER_SCRIPTS=ON
+BuildOption:    -DBUILD_KONQ_PLUGINS=ON -DBUILD_KSIG=ON -DBUILD_NOATUN_PLUGINS=ON
+BuildOption:    -DBUILD_RENAMEDLG_PLUGINS=ON -DBUILD_TDEFILE_PLUGINS=ON
+BuildOption:    -DBUILD_TUTORIALS=OFF
+%{!?with_db:BuildOption:    -DWITH_BERKELEY_DB=OFF}
+  
 # Trinity dependencies
 BuildRequires: trinity-tdelibs-devel >= %{tde_version}
 BuildRequires: trinity-tdebase-devel >= %{tde_version}
@@ -71,21 +89,11 @@ BuildRequires: trinity-tdemultimedia-devel >= %{tde_version}
 BuildRequires: trinity-tdepim-devel >= %{tde_version}
 
 BuildRequires:	trinity-tde-cmake >= %{tde_version}
-%if "%{?toolchain}" != "clang"
-BuildRequires:	gcc-c++
-%endif
+
+%{!?with_clang:BuildRequires:	gcc-c++}
+
 BuildRequires:	pkgconfig
 BuildRequires:	fdupes
-
-# SUSE desktop files utility
-%if 0%{?suse_version}
-BuildRequires:	update-desktop-files
-%endif
-
-%if 0%{?opensuse_bs} && 0%{?suse_version}
-# for xdg-menu script
-BuildRequires:	brp-check-trinity
-%endif
 
 # SDL support
 BuildRequires:  pkgconfig(sdl)
@@ -100,11 +108,7 @@ BuildRequires:  pkgconfig(openssl)
 BuildRequires:	pkgconfig(libidn)
 
 # GAMIN support
-#  Not on openSUSE.
-%if 0%{!?suse_version}
-%define with_gamin 1
-BuildRequires:	pkgconfig(gamin)
-%endif
+%{?with_gamin:BuildRequires:	pkgconfig(gamin)}
 
 # PCRE2 support
 BuildRequires:  pkgconfig(libpcre2-posix)
@@ -113,14 +117,7 @@ BuildRequires:  pkgconfig(libpcre2-posix)
 BuildRequires:  pkgconfig(libacl)
 
 # DB4/DB5 support
-%define with_db 0
-BuildRequires:	db-devel
-
-# XMMS support: no, always disabled, even on Fedora
-#%if 0%{?fedora}
-#define with_xmms 1
-#BuildRequires:	xmms-devel
-#%endif
+%{?with_db:BuildRequires:	db-devel}
 
 BuildRequires:  pkgconfig(xrender)
 BuildRequires:  pkgconfig(x11)
@@ -128,9 +125,10 @@ BuildRequires:  pkgconfig(ice)
 BuildRequires:  pkgconfig(sm)
 
 # PYTHON support
-%define with_python 1
+%if %{with python}
 %global python python3
 %global __python %__python3
+%endif 
 
 Requires: trinity-atlantikdesigner = %{?epoch:%{epoch}:}%{version}-%{release}
 Requires: trinity-kaddressbook-plugins = %{?epoch:%{epoch}:}%{version}-%{release}
@@ -384,7 +382,7 @@ controls XMMS, install the xmms-kde-trinity package.
 Summary: scripts for KNewsTicker, the Trinity news ticker
 Group:		Applications/Utilities
 Requires:	perl
-%if 0%{with_python}
+%if %{with python}
 Requires:	%{python}
 %endif
 #Requires:	libfinance-quote-perl
@@ -410,32 +408,13 @@ and various local news sources.
 %package -n trinity-konq-plugins
 Summary:	plugins for Konqueror, the Trinity file/web/doc browser
 Group:		Applications/Utilities
-%if 0%{?mgaversion} || 0%{?mdkversion}
-%if 0%{?pclinuxos} == 0
 Requires:	%{_lib}jpeg8
-%endif
-%endif
-%if 0%{?rhel} || 0%{?fedora}
-Requires:	libjpeg
-%endif
-%if 0%{?suse_version} == 1220
-Requires:	libjpeg62
-%endif
-%if 0%{?pclinuxos}
-Requires:	%{_lib}jpeg62
-%endif
-%if 0%{?suse_version} == 1230
-Requires:	libjpeg8
-%endif
-%if 0%{with_python}
+%if %{with python}
 Requires:	%{python}
 %endif
 Requires:	rsync
 #Requires:	unison
 Requires:	trinity-konqueror
-%if 0%{?fedora}
-Requires:	%{python}-exif
-%endif
 
 %description -n trinity-konq-plugins
 This package contains a variety of useful plugins for Konqueror, the
@@ -635,7 +614,7 @@ of user interfaces, playlists and visualisation plugins.
 %{tde_tdelibdir}/noatunlyrics.so
 %{tde_tdelibdir}/noatunmadness.la
 %{tde_tdelibdir}/noatunmadness.so
-%if 0%{?with_db}
+%if %{with db}
 %{tde_tdelibdir}/noatun_oblique.la
 %{tde_tdelibdir}/noatun_oblique.so
 %endif
@@ -657,35 +636,13 @@ of user interfaces, playlists and visualisation plugins.
 %{tde_mandir}/man1/noatuntippecanoe.bin.1*
 %{tde_mandir}/man1/noatuntyler.bin.1*
 
-##########
 
-%if 0%{?suse_version} && 0%{?opensuse_bs} == 0
-%debug_package
-%endif
-
-##########
-
-%prep
-%autosetup -n %{tarball_name}-%{version}%{?preversion:~%{preversion}}
-
-%if 0%{?fedora} >= 30 || 0%{?rhel} >= 8 || 0%{?mgaversion} >= 8
-# Fix shebangs
-sed -i "knewsticker-scripts/sportscores.py" \
-       "konq-plugins/imagerotation/orient.py" \
-       "konq-plugins/imagerotation/exif.py" \
-    -e "s|env python|env %{python}|"
-%endif
-
-%build
+%conf -p
 unset QTDIR QTINC QTLIB
 export PATH="%{tde_bindir}:${PATH}"
 export PKG_CONFIG_PATH="%{tde_libdir}/pkgconfig:${PKG_CONFIG_PATH}"
 
-if ! rpm -E %%cmake|grep -e 'cd build\|cd ${CMAKE_BUILD_DIR:-build}'; then
-  %__mkdir_p build
-  cd build
-fi
-
+%if %{with db}
 # Help cmake to find DB headers ...
 if [ -d "/usr/include/db53" ]; then
   export CMAKE_INCLUDE_PATH="/usr/include/db53"
@@ -693,63 +650,10 @@ fi
 if [ -d "/usr/include/db4" ]; then
   export CMAKE_INCLUDE_PATH="/usr/include/db4"
 fi
+%endif
 
 
-%cmake \
-  -DCMAKE_BUILD_TYPE="RelWithDebInfo" \
-  -DCMAKE_C_FLAGS="${RPM_OPT_FLAGS}" \
-  -DCMAKE_CXX_FLAGS="${RPM_OPT_FLAGS}" \
-  -DCMAKE_SKIP_RPATH=OFF \
-  -DCMAKE_SKIP_INSTALL_RPATH=OFF \
-  -DCMAKE_INSTALL_RPATH="%{tde_libdir}" \
-  -DCMAKE_VERBOSE_MAKEFILE=ON \
-  -DWITH_GCC_VISIBILITY=OFF \
-  \
-  -DCMAKE_INSTALL_PREFIX="%{tde_prefix}" \
-  -DBIN_INSTALL_DIR="%{tde_bindir}" \
-  -DDOC_INSTALL_DIR="%{tde_docdir}" \
-  -DINCLUDE_INSTALL_DIR="%{tde_tdeincludedir}" \
-  -DLIB_INSTALL_DIR="%{tde_libdir}" \
-  -DPKGCONFIG_INSTALL_DIR="%{tde_libdir}/pkgconfig" \
-  -DSYSCONF_INSTALL_DIR="%{_sysconfdir}/trinity" \
-  -DSHARE_INSTALL_PREFIX="%{tde_datadir}" \
-  \
-  -DWITH_ALL_OPTIONS=ON \
-  -DWITH_ARTS=ON \
-  -DWITH_SDL=ON \
-  -DWITH_BERKELEY_DB=OFF \
-  -DWITH_XMMS=OFF \
-  -DWITH_TEST=OFF \
-  \
-  -DBUILD_ALL=ON \
-  -DBUILD_ATLANTIKDESIGNER=ON \
-  -DBUILD_DOC=ON \
-  -DBUILD_KADDRESSBOOK_PLUGINS=ON \
-  -DBUILD_KATE_PLUGINS=ON \
-  -DBUILD_KICKER_APPLETS=ON \
-  -DBUILD_KNEWSTICKER_SCRIPTS=ON \
-  -DBUILD_KONQ_PLUGINS=ON \
-  -DBUILD_KSIG=ON \
-  -DBUILD_NOATUN_PLUGINS=ON \
-  -DBUILD_RENAMEDLG_PLUGINS=ON \
-  -DBUILD_TDEFILE_PLUGINS=ON \
-  -DBUILD_TUTORIALS=OFF \
-  ..
-
-%__make %{?_smp_mflags} || %__make
-
-
-%install
-export PATH="%{tde_bindir}:${PATH}"
-%__make install DESTDIR=%{buildroot} -C build
-
+%install -a
 # Temporary
 %__rm -rf %{?buildroot}%{tde_tdedocdir}/HTML/en/khelpcenter
-
-
-# Updates applications categories for openSUSE
-%if 0%{?suse_version}
-%suse_update_desktop_file atlantikdesigner Game    BoardGame
-%suse_update_desktop_file -r ksig          Network Email
-%endif
 
