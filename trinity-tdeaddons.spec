@@ -7,11 +7,6 @@
 #  Having KDE libraries may cause FTBFS here !
 
 # TDE variables
-%if "%{?tde_version}" == ""
-%define tde_version 14.1.5
-%endif
-%define pkg_rel 3
-
 %define tde_pkg tdeaddons
 %define tde_prefix /opt/trinity
 
@@ -28,22 +23,22 @@
 
 Name:		trinity-%{tde_pkg}
 Summary:	Trinity Desktop Environment - Plugins
-Version:	%{tde_version}
-Release:	%{?!preversion:%{pkg_rel}}%{?preversion:0_%{preversion}}%{?dist}
+Version:	14.1.5
+Release:	4
 Group:		User Interface/Desktops
 URL:		http://www.trinitydesktop.org/
 
 License:	GPLv2+
 
 
-Obsoletes:	trinity-kdeaddons < %{?epoch:%{epoch}:}%{version}-%{release}
-Provides:	trinity-kdeaddons = %{?epoch:%{epoch}:}%{version}-%{release}
-Obsoletes:	trinity-kdeaddons-extras < %{?epoch:%{epoch}:}%{version}-%{release}
-Provides:	trinity-kdeaddons-extras = %{?epoch:%{epoch}:}%{version}-%{release}
+Obsoletes:	trinity-kdeaddons < %{EVRD}
+Provides:	trinity-kdeaddons = %{EVRD}
+Obsoletes:	trinity-kdeaddons-extras < %{EVRD}
+Provides:	trinity-kdeaddons-extras = %{EVRD}
 
 Prefix:    %{tde_prefix}
 
-Source0:	https://mirror.ppa.trinitydesktop.org/trinity/releases/R%{tde_version}/main/core/%{tarball_name}-%{version}%{?preversion:~%{preversion}}.tar.xz
+Source0:	https://mirror.ppa.trinitydesktop.org/trinity/releases/R%{version}/main/core/%{tarball_name}-%{version}.tar.xz
 
 BuildSystem:    cmake
 
@@ -66,13 +61,13 @@ BuildOption:    -DWITH_GCC_VISIBILITY=%{!?with_clang:ON}%{?with_clang:OFF}
 BuildOption:    -DWITH_BERKELEY_DB=OFF
   
 # Trinity dependencies
-BuildRequires: trinity-tdelibs-devel >= %{tde_version}
-BuildRequires: trinity-tdebase-devel >= %{tde_version}
-BuildRequires: trinity-tdegames-devel >= %{tde_version}
-BuildRequires: trinity-tdemultimedia-devel >= %{tde_version}
-BuildRequires: trinity-tdepim-devel >= %{tde_version}
+BuildRequires: trinity-tdelibs-devel >= %{version}
+BuildRequires: trinity-tdebase-devel >= %{version}
+BuildRequires: trinity-tdegames-devel >= %{version}
+BuildRequires: trinity-tdemultimedia-devel >= %{version}
+BuildRequires: trinity-tdepim-devel >= %{version}
 
-BuildRequires:	trinity-tde-cmake >= %{tde_version}
+BuildRequires:	trinity-tde-cmake >= %{version}
 
 %{!?with_clang:BuildRequires:	gcc-c++}
 
@@ -115,15 +110,15 @@ BuildRequires:  pkgconfig(sm)
 %global __python %__python3
 %endif 
 
-Requires: trinity-atlantikdesigner = %{?epoch:%{epoch}:}%{version}-%{release}
-Requires: trinity-kaddressbook-plugins = %{?epoch:%{epoch}:}%{version}-%{release}
-Requires: trinity-kate-plugins = %{?epoch:%{epoch}:}%{version}-%{release}
-Requires: trinity-tdeaddons-tdefile-plugins = %{?epoch:%{epoch}:}%{version}-%{release}
-Requires: trinity-kicker-applets = %{?epoch:%{epoch}:}%{version}-%{release}
-Requires: trinity-knewsticker-scripts = %{?epoch:%{epoch}:}%{version}-%{release}
-Requires: trinity-konq-plugins = %{?epoch:%{epoch}:}%{version}-%{release}
-Requires: trinity-ksig = %{?epoch:%{epoch}:}%{version}-%{release}
-Requires: trinity-noatun-plugins = %{?epoch:%{epoch}:}%{version}-%{release}
+Requires: trinity-atlantikdesigner = %{EVRD}
+Requires: trinity-kaddressbook-plugins = %{EVRD}
+Requires: trinity-kate-plugins = %{EVRD}
+Requires: trinity-tdeaddons-tdefile-plugins = %{EVRD}
+Requires: trinity-kicker-applets = %{EVRD}
+Requires: trinity-knewsticker-scripts = %{EVRD}
+Requires: trinity-konq-plugins = %{EVRD}
+Requires: trinity-ksig = %{EVRD}
+Requires: trinity-noatun-plugins = %{EVRD}
 
 
 %description
@@ -274,8 +269,8 @@ a tab bar, a Python browser and even more.
 Summary:	Trinity file dialog plugins for text files and folders
 Group:		Applications/Utilities
 
-Obsoletes:	trinity-tdeaddons-kfile-plugins < %{?epoch:%{epoch}:}%{version}-%{release}
-Provides:	trinity-tdeaddons-kfile-plugins = %{?epoch:%{epoch}:}%{version}-%{release}
+Obsoletes:	trinity-tdeaddons-kfile-plugins < %{EVRD}
+Provides:	trinity-tdeaddons-kfile-plugins = %{EVRD}
 
 %description tdefile-plugins
 This is a collection of plugins for the TDE file dialog.  These plugins
