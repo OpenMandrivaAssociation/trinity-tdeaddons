@@ -16,15 +16,15 @@
 %define _disable_rebuild_configure 1
 
 # fixes error: Empty %files file …/debugsourcefiles.list
-%define _debugsource_template %{nil}
+%undefine _debugsource_template
 
 %define tarball_name %{tde_pkg}-trinity
 
 
 Name:		trinity-%{tde_pkg}
 Summary:	Trinity Desktop Environment - Plugins
-Version:	14.1.5
-Release:	4
+Version:	14.1.6
+Release:	1
 Group:		User Interface/Desktops
 URL:		http://www.trinitydesktop.org/
 
@@ -66,8 +66,7 @@ BuildRequires: trinity-tdebase-devel >= %{version}
 BuildRequires: trinity-tdegames-devel >= %{version}
 BuildRequires: trinity-tdemultimedia-devel >= %{version}
 BuildRequires: trinity-tdepim-devel >= %{version}
-
-BuildRequires:	trinity-tde-cmake >= %{version}
+BuildRequires: trinity-tde-cmake >= %{version}
 
 %{!?with_clang:BuildRequires:	gcc-c++}
 
